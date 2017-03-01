@@ -18,7 +18,7 @@ namespace LilSpheres {
 float* particleCOOR; 
 float* particleLast;
 
-void GUI() { 
+void GUI() {
 	{	//FrameRate
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
@@ -41,25 +41,25 @@ void PhysicsInit() {
 	particleLast = new float[LilSpheres::maxParticles * 3]; 
 	
 	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
-		particleCOOR[i * 3 + 0] = ((float)rand() / RAND_MAX) * 10.f - 5.f;
-		particleCOOR[i * 3 + 1] = ((float)rand() / RAND_MAX) * 10.f;
-		particleCOOR[i * 3 + 2] = ((float)rand() / RAND_MAX) * 10.f - 5.f;
+		particleCOOR[i * 3 + 0] = -3.f;
+		particleCOOR[i * 3 + 1] = 7.f;
+		particleCOOR[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 	}
 
 	LilSpheres::updateParticles(0, LilSpheres::maxParticles, particleCOOR);
 
-	//delete[] particleVectors;
-	
+		
 }
 
 
 void PhysicsUpdate(float dt) {
 
 	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
-	//particleVectors[i * 3 + 0] = ((float)rand() / RAND_MAX) * 10.f - 5.f;
 	particleLast[i * 3 + 1] = particleCOOR[i * 3 + 1];
-	particleCOOR[i * 3 + 1] = particleCOOR[i * 3 + 1] + (particleCOOR[i * 3 + 1] - particleLast[i * 3 + 1]) + (-9.81f * (dt*dt)); // ((float)rand() / RAND_MAX) * 10.f;
-	//particleVectors[i * 3 + 2] = ((float)rand() / RAND_MAX) * 10.f - 5.f;
+	particleLast[i * 3 + 2] = particleCOOR[i * 3 + 2];
+	particleLast[i * 3 + 3] = particleCOOR[i * 3 + 3];
+
+	particleCOOR[i * 3 + 1] = particleCOOR[i * 3 + 1] + (particleCOOR[i * 3 + 1] - particleLast[i * 3 + 1]) + (-9.81f * (dt*dt));
 
 	}
 	
