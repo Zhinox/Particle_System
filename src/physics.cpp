@@ -18,52 +18,80 @@ namespace LilSpheres {
 float* particleCOOR; 
 float* particleLast;
 
+float *InitialPos;
+float *lastPos;
+float *particleVel;
+
 void GUI() {
-	{	//FrameRate
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-		//TODO
-	}
-
-	// ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-	if(show_test_window) {
+	//FrameRate
+	{ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);} //Framerate. TODO
+		
+	if(show_test_window) { // ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
 		ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
 		ImGui::ShowTestWindow(&show_test_window);
 	}
 }
-
-
 
 void PhysicsInit() {
 	LilSpheres::setupParticles(LilSpheres::maxParticles);
 
 	particleCOOR = new float[LilSpheres::maxParticles * 3];
 	particleLast = new float[LilSpheres::maxParticles * 3]; 
+	InitialPos = new float[LilSpheres::maxParticles * 3];
+	particleVel = new float[LilSpheres::maxParticles * 3];
+	lastPos = new float[LilSpheres::maxParticles * 3];
 	
 	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
-		particleCOOR[i * 3 + 0] = -3.f;
-		particleCOOR[i * 3 + 1] = 7.f;
-		particleCOOR[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+		particleLast[i * 3 + 0] = particleCOOR[i * 3 + 0] = -3.f;
+		particleLast[i * 3 + 1] = particleCOOR[i * 3 + 1] = 7.f;
+		particleLast[i * 3 + 2] = particleCOOR[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 	}
 
-	LilSpheres::updateParticles(0, LilSpheres::maxParticles, particleCOOR);
+	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
+		InitialPos[i * 3 + 0] = 0.f;
+		InitialPos[i * 3 + 1] = 2.f;
+		InitialPos[i * 3 + 2] = 0.f;
+		particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+		particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 8.f + 5.f;
+		particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+	}
+	
+
 
 		
 }
 
 
-void PhysicsUpdate(float dt) {
+void PhysicsUpdate(float dt) { 
 
-	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
-	particleLast[i * 3 + 1] = particleCOOR[i * 3 + 1];
-	particleLast[i * 3 + 2] = particleCOOR[i * 3 + 2];
-	particleLast[i * 3 + 3] = particleCOOR[i * 3 + 3];
+	/*for (int i = 0; i < LilSpheres::maxParticles; ++i) { //Verlet
 
-	particleCOOR[i * 3 + 1] = particleCOOR[i * 3 + 1] + (particleCOOR[i * 3 + 1] - particleLast[i * 3 + 1]) + (-9.81f * (dt*dt));
+		float temp[3]{ particleCOOR[i * 3 + 0], particleCOOR[i * 3 + 1],  particleCOOR[i * 3 + 2] }; //Stores on temp variable the last position for each axis
 
+		particleCOOR[i * 3 + 1] = particleCOOR[i * 3 + 1] + (particleCOOR[i * 3 + 1] - particleLast[i * 3 + 1]) + (-9.81f * (dt*dt)); //Applies Verlet on Y
+
+		particleLast[i * 3 + 0] = temp[0]; particleLast[i * 3 + 1] = temp[1]; 	particleLast[i * 3 + 2] = temp[2]; //Stores each position axis on particleLast
+	}*/
+
+	for (int i = 0; i < LilSpheres::maxParticles; i++) {
+
+
+		float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
+
+		lastPos[i * 3 + 0] = InitialPos[i * 3 + 0] + dt * particleVel[i * 3 + 0]; //Applies Euler on X
+		lastPos[i * 3 + 1] = InitialPos[i * 3 + 1] + dt * particleVel[i * 3 + 1]; //Applies Euler on Y
+		lastPos[i * 3 + 2] = InitialPos[i * 3 + 2] + dt * particleVel[i * 3 + 2]; //Applies Euler on Z
+
+		particleVel[i * 3 + 1] = particleVel[i * 3 + 1] + dt * -9.81;
+		
+		InitialPos[i * 3 + 0] = lastPos[i * 3 + 0];
+		InitialPos[i * 3 + 1] = lastPos[i * 3 + 1];
+		InitialPos[i * 3 + 2] = lastPos[i * 3 + 2];
 	}
 	
-	LilSpheres::updateParticles(0, LilSpheres::maxParticles, particleCOOR);
+	//LilSpheres::updateParticles(0, LilSpheres::maxParticles, particleCOOR);
+	LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
 
 }
 
