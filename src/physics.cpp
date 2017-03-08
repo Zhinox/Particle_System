@@ -9,7 +9,7 @@ bool show_test_window = false;
 
 namespace LilSpheres {
 	extern const int maxParticles;
-	extern void setupParticles(int numTotalParticles, float radius = 0.15f);
+	extern void setupParticles(int numTotalParticles, float radius = 0.08f);
 	extern void cleanupParticles();
 	extern void updateParticles(int startIdx, int count, float* array_data);
 	extern void drawParticles(int startIdx, int count);
