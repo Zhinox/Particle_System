@@ -56,10 +56,6 @@ void PhysicsInit() {
 		particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 8.f + 5.f;
 		particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 	}
-	
-
-
-		
 }
 
 
@@ -78,6 +74,25 @@ void PhysicsUpdate(float dt) {
 
 
 		float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
+
+		if (lastPos[i * 3 + 1] <= 0) { //Terra
+			particleVel[i * 3 + 1] *= -0.9;
+		}
+		else if (lastPos[i * 3 + 1] >= 10) { //Sostre
+			particleVel[i * 3 + 1] *= -0.9;
+		}
+		else if (lastPos[i * 3 + 0] <= -5) { //Paret esquerra
+			particleVel[i * 3 + 0] *= -0.9;
+		}
+		else if (lastPos[i * 3 + 0] >= 5) { //Paret dreta
+			particleVel[i * 3 + 0] *= -0.9;
+		}
+		else if (lastPos[i * 3 + 2] >= 5) { //Paret davant
+			particleVel[i * 3 + 2] *= -0.9;
+		}
+		else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
+			particleVel[i * 3 + 2] *= -0.9;
+		}
 
 		lastPos[i * 3 + 0] = InitialPos[i * 3 + 0] + dt * particleVel[i * 3 + 0]; //Applies Euler on X
 		lastPos[i * 3 + 1] = InitialPos[i * 3 + 1] + dt * particleVel[i * 3 + 1]; //Applies Euler on Y
