@@ -5,6 +5,7 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <cstdio>
 #include <iostream>
+#include <time.h>
 
 bool show_test_window = false;
 
@@ -16,7 +17,7 @@ namespace LilSpheres {
 	extern void drawParticles(int startIdx, int count);
 }
 
-float lifeP = 1.5f;
+float lifeP = 2.5f;
 float* particleCOOR;
 float* particleLast;
 
@@ -28,12 +29,13 @@ struct Particle {
 float *InitialPos;
 float *lastPos;
 float *particleVel;
-int mode = 1;
-int type = 2;
+static int mode = 1;
+static int type = 1;
+int mode1 = 1;
+
 int lastUsed = 0;
 int pxs = 10;
 Particle ParticlesContainer[SHRT_MAX];
-
 float particlesAlive = 100000.0f;
 int particleCounter = 1;
 
@@ -41,6 +43,15 @@ void GUI() {
 
 	//FrameRate
 	{ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); } //Framerate. TODO
+	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+	ImGui::Text("Euler                          Verlet");
+	ImGui::SliderInt(" ", &mode, 1, 2);
+	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+	ImGui::Text("Fountain                      Cascade");
+	ImGui::SliderInt("", &type, 1, 2);
+	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+
+
 
 	if (show_test_window) { // ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
 		ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
@@ -49,6 +60,7 @@ void GUI() {
 }
 
 void PhysicsInit() {
+	
 	LilSpheres::setupParticles(LilSpheres::maxParticles);
 
 	particleCOOR = new float[LilSpheres::maxParticles * 3];
@@ -56,6 +68,7 @@ void PhysicsInit() {
 	InitialPos = new float[LilSpheres::maxParticles * 3];
 	particleVel = new float[LilSpheres::maxParticles * 3];
 	lastPos = new float[LilSpheres::maxParticles * 3];
+	
 
 
 
@@ -65,8 +78,8 @@ void PhysicsInit() {
 		particleLast[i * 3 + 2] = particleCOOR[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 
 	}
-
 	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
+		
 		InitialPos[i * 3 + 0] = 0.f;
 		InitialPos[i * 3 + 1] = 2.f;
 		InitialPos[i * 3 + 2] = 0.f;
@@ -81,9 +94,11 @@ void PhysicsInit() {
 
 void PhysicsUpdate(float dt) {
 
+	
 	switch (mode) {
 
 	case 1:
+
 		if (type == 1) {
 
 			for (int i = 0; i < particleCounter; i++) {
@@ -94,7 +109,7 @@ void PhysicsUpdate(float dt) {
 
 				}
 				if (p.life > 0.0f) {
-
+					
 					float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
 
 					if (lastPos[i * 3 + 1] <= 0) { //Terra
@@ -152,6 +167,7 @@ void PhysicsUpdate(float dt) {
 			particleCounter += (int)LilSpheres::maxParticles / 100;
 		}
 		else if (type == 2) {
+			
 			for (int i = 0; i < particleCounter; i++) {
 
 				Particle& p = ParticlesContainer[i];
@@ -164,7 +180,7 @@ void PhysicsUpdate(float dt) {
 					float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
 
 					if (lastPos[i * 3 + 1] <= 0) { //Terra
-						particleVel[i * 3 + 1] *= -0.9;
+						particleVel[i * 3 + 1] *= -0.5;
 					}
 					else if (lastPos[i * 3 + 1] >= 10) { //Sostre
 						particleVel[i * 3 + 1] *= -0.9;
@@ -204,7 +220,7 @@ void PhysicsUpdate(float dt) {
 						InitialPos[i * 3 + 1] = 7.f;
 						InitialPos[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 						particleVel[i * 3 + 0] = 1.5f;
-						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 2.f + 1.8f;
+						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 0.5f;
 						particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 						ParticlesContainer[i].life = lifeP;
 					}
