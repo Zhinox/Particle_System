@@ -21,9 +21,10 @@ static float lifeP = 3.f;
 float* particleCOOR;
 float* particleLast;
 static int PxS = 100;
+static float elasticity = 5;
 
 struct Particle {
-	float life = 1.f;
+	float life = 0.1f;
 
 };
 
@@ -36,14 +37,15 @@ int mode1 = 1;
 int lastMode = 1;
 int lastUsed = 0;
 
-Particle ParticlesContainer[SHRT_MAX];
-float particlesAlive = 100000.0f;
+Particle totalParticles[SHRT_MAX];
 int particleCounter = 1;
 
 void GUI() {
 
 	//FrameRate
 	{ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); } //Framerate. TODO
+	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+	ImGui::Text("Max particles set to 30.000");
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
 	ImGui::Text("Euler                          Verlet");
 	ImGui::SliderInt(" ", &mode, 1, 2);
@@ -54,6 +56,8 @@ void GUI() {
 	ImGui::SliderFloat("Life expectancy", &lifeP, 1.f, 5.f);
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
 	ImGui::SliderInt("Particles per second", &PxS, 100, 300);
+	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+	ImGui::SliderFloat("Elasticity", &elasticity, 0, 9.f);
 	
 
 
@@ -115,7 +119,7 @@ void PhysicsUpdate(float dt) {
 					particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
 					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-					ParticlesContainer[i].life = lifeP;
+					totalParticles[i].life = lifeP;
 
 
 				}
@@ -127,7 +131,7 @@ void PhysicsUpdate(float dt) {
 			}
 			for (int i = 0; i < particleCounter; i++) {
 
-				Particle& p = ParticlesContainer[i];
+				Particle& p = totalParticles[i];
 				if (p.life > 0.0f) {
 					p.life -= dt;
 
@@ -137,22 +141,22 @@ void PhysicsUpdate(float dt) {
 					float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
 
 					if (lastPos[i * 3 + 1] <= 0) { //Terra
-						particleVel[i * 3 + 1] *= -0.9;
+						particleVel[i * 3 + 1] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 1] >= 10) { //Sostre
-						particleVel[i * 3 + 1] *= -0.9;
+						particleVel[i * 3 + 1] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 0] <= -5) { //Paret esquerra
-						particleVel[i * 3 + 0] *= -0.9;
+						particleVel[i * 3 + 0] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 0] >= 5) { //Paret dreta
-						particleVel[i * 3 + 0] *= -0.9;
+						particleVel[i * 3 + 0] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 2] >= 5) { //Paret davant
-						particleVel[i * 3 + 2] *= -0.9;
+						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
-						particleVel[i * 3 + 2] *= -0.9;
+						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
 
 
@@ -172,14 +176,14 @@ void PhysicsUpdate(float dt) {
 				else {
 					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= PxS; }
 
-					if (ParticlesContainer[i].life <= 0.0f) {
+					if (totalParticles[i].life <= 0.0f) {
 						InitialPos[i * 3 + 0] = 0.f;
 						InitialPos[i * 3 + 1] = 2.f;
 						InitialPos[i * 3 + 2] = 0.f;
 						particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
 						particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-						ParticlesContainer[i].life = lifeP;
+						totalParticles[i].life = lifeP;
 
 
 					}
@@ -201,7 +205,7 @@ void PhysicsUpdate(float dt) {
 					particleVel[i * 3 + 0] = 1.5f;
 					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 0.5f;
 					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-					ParticlesContainer[i].life = lifeP;
+					totalParticles[i].life = lifeP;
 
 				}
 				particleCounter = 1;
@@ -210,7 +214,7 @@ void PhysicsUpdate(float dt) {
 			}
 			for (int i = 0; i < particleCounter; i++) {
 
-				Particle& p = ParticlesContainer[i];
+				Particle& p = totalParticles[i];
 				if (p.life > 0.0f) {
 					p.life -= dt;
 
@@ -220,22 +224,23 @@ void PhysicsUpdate(float dt) {
 					float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
 
 					if (lastPos[i * 3 + 1] <= 0) { //Terra
-						particleVel[i * 3 + 1] *= -0.5;
+						particleVel[i * 3 + 1] *= -elasticity*0.1;
+						
 					}
 					else if (lastPos[i * 3 + 1] >= 10) { //Sostre
-						particleVel[i * 3 + 1] *= -0.9;
+						particleVel[i * 3 + 1] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 0] <= -5) { //Paret esquerra
-						particleVel[i * 3 + 0] *= -0.9;
+						particleVel[i * 3 + 0] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 0] >= 5) { //Paret dreta
-						particleVel[i * 3 + 0] *= -0.9;
+						particleVel[i * 3 + 0] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 2] >= 5) { //Paret davant
-						particleVel[i * 3 + 2] *= -0.9;
+						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
 					else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
-						particleVel[i * 3 + 2] *= -0.9;
+						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
 
 
@@ -255,14 +260,14 @@ void PhysicsUpdate(float dt) {
 				else {
 					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= PxS; }
 
-					if (ParticlesContainer[i].life <= 0.0f) {
+					if (totalParticles[i].life <= 0.0f) {
 						InitialPos[i * 3 + 0] = -3.f;
 						InitialPos[i * 3 + 1] = 7.f;
 						InitialPos[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 						particleVel[i * 3 + 0] = 1.5f;
 						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 0.5f;
 						particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-						ParticlesContainer[i].life = lifeP;
+						totalParticles[i].life = lifeP;
 					}
 				}
 			}
