@@ -17,12 +17,13 @@ namespace LilSpheres {
 	extern void drawParticles(int startIdx, int count);
 }
 
-float lifeP = 2.5f;
+static float lifeP = 3.f;
 float* particleCOOR;
 float* particleLast;
+static int PxS = 100;
 
 struct Particle {
-	float life = lifeP;
+	float life = 1.f;
 
 };
 
@@ -34,7 +35,7 @@ static int type = 1;
 int mode1 = 1;
 
 int lastUsed = 0;
-int pxs = 10;
+
 Particle ParticlesContainer[SHRT_MAX];
 float particlesAlive = 100000.0f;
 int particleCounter = 1;
@@ -50,6 +51,10 @@ void GUI() {
 	ImGui::Text("Fountain                      Cascade");
 	ImGui::SliderInt("", &type, 1, 2);
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+	ImGui::SliderFloat("Life expectancy", &lifeP, 1.f, 5.f);
+	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+	ImGui::SliderInt("Particles per second", &PxS, 100, 300);
+	
 
 
 
@@ -146,7 +151,7 @@ void PhysicsUpdate(float dt) {
 
 				}
 				else {
-					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= (int)LilSpheres::maxParticles / 100; }
+					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= PxS; }
 
 					if (ParticlesContainer[i].life <= 0.0f) {
 						InitialPos[i * 3 + 0] = 0.f;
@@ -164,7 +169,7 @@ void PhysicsUpdate(float dt) {
 				}
 			}
 			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
-			particleCounter += (int)LilSpheres::maxParticles / 100;
+			if (particleCounter + PxS <= LilSpheres::maxParticles) { particleCounter += PxS; }
 		}
 		else if (type == 2) {
 			
@@ -213,7 +218,7 @@ void PhysicsUpdate(float dt) {
 
 				}
 				else {
-					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= (int)LilSpheres::maxParticles / 100; }
+					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= PxS; }
 
 					if (ParticlesContainer[i].life <= 0.0f) {
 						InitialPos[i * 3 + 0] = -3.f;
@@ -227,7 +232,7 @@ void PhysicsUpdate(float dt) {
 				}
 			}
 			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
-			particleCounter += (int)LilSpheres::maxParticles / 100;
+			if (particleCounter + PxS <= LilSpheres::maxParticles) { particleCounter += PxS; }
 		}
 
 		break;
