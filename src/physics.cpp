@@ -33,7 +33,7 @@ float *particleVel;
 static int mode = 1;
 static int type = 1;
 int mode1 = 1;
-
+int lastMode = 1;
 int lastUsed = 0;
 
 Particle ParticlesContainer[SHRT_MAX];
@@ -103,9 +103,28 @@ void PhysicsUpdate(float dt) {
 	switch (mode) {
 
 	case 1:
-
+	
 		if (type == 1) {
+			if (lastMode == 2) {
 
+				for (int i = 0; i < LilSpheres::maxParticles; i++) {
+
+					InitialPos[i * 3 + 0] = 0.f;
+					InitialPos[i * 3 + 1] = 2.f;
+					InitialPos[i * 3 + 2] = 0.f;
+					particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
+					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+					ParticlesContainer[i].life = lifeP;
+
+
+				}
+				particleCounter = 1;
+				lastMode = 1;
+
+
+
+			}
 			for (int i = 0; i < particleCounter; i++) {
 
 				Particle& p = ParticlesContainer[i];
@@ -173,6 +192,22 @@ void PhysicsUpdate(float dt) {
 		}
 		else if (type == 2) {
 			
+			if (lastMode == 1) {
+				for (int i = 0; i < LilSpheres::maxParticles; i++) {
+
+					InitialPos[i * 3 + 0] = -3.f;
+					InitialPos[i * 3 + 1] = 7.f;
+					InitialPos[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+					particleVel[i * 3 + 0] = 1.5f;
+					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 0.5f;
+					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+					ParticlesContainer[i].life = lifeP;
+
+				}
+				particleCounter = 1;
+				lastMode = 2;
+
+			}
 			for (int i = 0; i < particleCounter; i++) {
 
 				Particle& p = ParticlesContainer[i];
