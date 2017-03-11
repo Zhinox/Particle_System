@@ -207,11 +207,7 @@ void PhysicsUpdate(float dt) {
 						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 2.f + 1.8f;
 						particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 						ParticlesContainer[i].life = lifeP;
-
-
 					}
-
-
 				}
 			}
 			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
