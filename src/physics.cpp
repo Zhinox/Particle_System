@@ -16,7 +16,7 @@ namespace LilSpheres {
 	extern void drawParticles(int startIdx, int count);
 }
 
-float lifeP = 2.f;
+float lifeP = 1.5f;
 float* particleCOOR;
 float* particleLast;
 
@@ -29,6 +29,7 @@ float *InitialPos;
 float *lastPos;
 float *particleVel;
 int mode = 1;
+int type = 2;
 int lastUsed = 0;
 int pxs = 10;
 Particle ParticlesContainer[SHRT_MAX];
@@ -83,71 +84,140 @@ void PhysicsUpdate(float dt) {
 	switch (mode) {
 
 	case 1:
-		for (int i = 0; i < particleCounter; i++) {
+		if (type == 1) {
 
-			Particle& p = ParticlesContainer[i];
-			if (p.life > 0.0f) {
-				p.life -= dt;
+			for (int i = 0; i < particleCounter; i++) {
 
+				Particle& p = ParticlesContainer[i];
+				if (p.life > 0.0f) {
+					p.life -= dt;
+
+				}
+				if (p.life > 0.0f) {
+
+					float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
+
+					if (lastPos[i * 3 + 1] <= 0) { //Terra
+						particleVel[i * 3 + 1] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 1] >= 10) { //Sostre
+						particleVel[i * 3 + 1] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 0] <= -5) { //Paret esquerra
+						particleVel[i * 3 + 0] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 0] >= 5) { //Paret dreta
+						particleVel[i * 3 + 0] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 2] >= 5) { //Paret davant
+						particleVel[i * 3 + 2] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
+						particleVel[i * 3 + 2] *= -0.9;
+					}
+
+
+					lastPos[i * 3 + 0] = InitialPos[i * 3 + 0] + dt * particleVel[i * 3 + 0]; //Applies Euler on X
+					lastPos[i * 3 + 1] = InitialPos[i * 3 + 1] + dt * particleVel[i * 3 + 1]; //Applies Euler on Y
+					lastPos[i * 3 + 2] = InitialPos[i * 3 + 2] + dt * particleVel[i * 3 + 2]; //Applies Euler on Z
+
+					particleVel[i * 3 + 1] = particleVel[i * 3 + 1] + dt * -9.81;
+
+					InitialPos[i * 3 + 0] = lastPos[i * 3 + 0];
+					InitialPos[i * 3 + 1] = lastPos[i * 3 + 1];
+					InitialPos[i * 3 + 2] = lastPos[i * 3 + 2];
+
+
+
+				}
+				else {
+					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= (int)LilSpheres::maxParticles / 100; }
+
+					if (ParticlesContainer[i].life <= 0.0f) {
+						InitialPos[i * 3 + 0] = 0.f;
+						InitialPos[i * 3 + 1] = 2.f;
+						InitialPos[i * 3 + 2] = 0.f;
+						particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
+						particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+						ParticlesContainer[i].life = lifeP;
+
+
+					}
+
+
+				}
 			}
-			if (p.life > 0.0f) {
-
-				float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
-
-				if (lastPos[i * 3 + 1] <= 0) { //Terra
-					particleVel[i * 3 + 1] *= -0.9;
-				}
-				else if (lastPos[i * 3 + 1] >= 10) { //Sostre
-					particleVel[i * 3 + 1] *= -0.9;
-				}
-				else if (lastPos[i * 3 + 0] <= -5) { //Paret esquerra
-					particleVel[i * 3 + 0] *= -0.9;
-				}
-				else if (lastPos[i * 3 + 0] >= 5) { //Paret dreta
-					particleVel[i * 3 + 0] *= -0.9;
-				}
-				else if (lastPos[i * 3 + 2] >= 5) { //Paret davant
-					particleVel[i * 3 + 2] *= -0.9;
-				}
-				else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
-					particleVel[i * 3 + 2] *= -0.9;
-				}
-
-				
-				lastPos[i * 3 + 0] = InitialPos[i * 3 + 0] + dt * particleVel[i * 3 + 0]; //Applies Euler on X
-				lastPos[i * 3 + 1] = InitialPos[i * 3 + 1] + dt * particleVel[i * 3 + 1]; //Applies Euler on Y
-				lastPos[i * 3 + 2] = InitialPos[i * 3 + 2] + dt * particleVel[i * 3 + 2]; //Applies Euler on Z
-
-				particleVel[i * 3 + 1] = particleVel[i * 3 + 1] + dt * -9.81;
-
-				InitialPos[i * 3 + 0] = lastPos[i * 3 + 0];
-				InitialPos[i * 3 + 1] = lastPos[i * 3 + 1];
-				InitialPos[i * 3 + 2] = lastPos[i * 3 + 2];
-
-
-
-			}
-			else {
-				if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= (int)LilSpheres::maxParticles / 100; }
-
-				if (ParticlesContainer[i].life <= 0.0f) {
-
-					InitialPos[i * 3 + 0] = 0.f;
-					InitialPos[i * 3 + 1] = 2.f;
-					InitialPos[i * 3 + 2] = 0.f;
-					particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
-					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-					ParticlesContainer[i].life = lifeP;
-					
-
-				}
-				
-
-			}
+			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
+			particleCounter += (int)LilSpheres::maxParticles / 100;
 		}
-		LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
-		particleCounter += (int)LilSpheres::maxParticles / 100;
+		else if (type == 2) {
+			for (int i = 0; i < particleCounter; i++) {
+
+				Particle& p = ParticlesContainer[i];
+				if (p.life > 0.0f) {
+					p.life -= dt;
+
+				}
+				if (p.life > 0.0f) {
+
+					float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
+
+					if (lastPos[i * 3 + 1] <= 0) { //Terra
+						particleVel[i * 3 + 1] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 1] >= 10) { //Sostre
+						particleVel[i * 3 + 1] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 0] <= -5) { //Paret esquerra
+						particleVel[i * 3 + 0] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 0] >= 5) { //Paret dreta
+						particleVel[i * 3 + 0] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 2] >= 5) { //Paret davant
+						particleVel[i * 3 + 2] *= -0.9;
+					}
+					else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
+						particleVel[i * 3 + 2] *= -0.9;
+					}
+
+
+					lastPos[i * 3 + 0] = InitialPos[i * 3 + 0] + dt * particleVel[i * 3 + 0]; //Applies Euler on X
+					lastPos[i * 3 + 1] = InitialPos[i * 3 + 1] + dt * particleVel[i * 3 + 1]; //Applies Euler on Y
+					lastPos[i * 3 + 2] = InitialPos[i * 3 + 2] + dt * particleVel[i * 3 + 2]; //Applies Euler on Z
+
+					particleVel[i * 3 + 1] = particleVel[i * 3 + 1] + dt * -9.81;
+
+					InitialPos[i * 3 + 0] = lastPos[i * 3 + 0];
+					InitialPos[i * 3 + 1] = lastPos[i * 3 + 1];
+					InitialPos[i * 3 + 2] = lastPos[i * 3 + 2];
+
+
+
+				}
+				else {
+					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= (int)LilSpheres::maxParticles / 100; }
+
+					if (ParticlesContainer[i].life <= 0.0f) {
+						InitialPos[i * 3 + 0] = -3.f;
+						InitialPos[i * 3 + 1] = 7.f;
+						InitialPos[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+						particleVel[i * 3 + 0] = 1.5f;
+						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 2.f + 1.8f;
+						particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+						ParticlesContainer[i].life = lifeP;
+
+
+					}
+
+
+				}
+			}
+			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
+			particleCounter += (int)LilSpheres::maxParticles / 100;
+		}
+
 		break;
 
 
