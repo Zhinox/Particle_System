@@ -4,6 +4,7 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <cstdio>
+#include <iostream>
 
 bool show_test_window = false;
 
@@ -20,20 +21,20 @@ float* particleCOOR;
 float* particleLast;
 
 struct Particle{
-	float life = 4;
+	float life = 2.f;
 
 };
 
 float *InitialPos;
 float *lastPos;
 float *particleVel;
-int life = 4;
+float life = 2.f;
 int lastUsed = 0;
 
 Particle ParticlesContainer[SHRT_MAX];
 
 float particlesAlive = 100000.0f;
-int particleCounter = 0;
+int particleCounter = 1;
 
 void GUI() {
 
@@ -61,6 +62,7 @@ void PhysicsInit() {
 		particleLast[i * 3 + 0] = particleCOOR[i * 3 + 0] = -3.f;
 		particleLast[i * 3 + 1] = particleCOOR[i * 3 + 1] = 7.f;
 		particleLast[i * 3 + 2] = particleCOOR[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+	
 	}
 
 	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
@@ -71,11 +73,14 @@ void PhysicsInit() {
 		particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 8.f + 5.f;
 		particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 	}
+
+
 }
 
 
 void PhysicsUpdate(float dt) { 
 
+	
 	/*for (int i = 0; i < LilSpheres::maxParticles; ++i) { //Verlet
 
 		float temp[3]{ particleCOOR[i * 3 + 0], particleCOOR[i * 3 + 1],  particleCOOR[i * 3 + 2] }; //Stores on temp variable the last position for each axis
@@ -86,6 +91,7 @@ void PhysicsUpdate(float dt) {
 	}*/
 	
 	if (particlesAlive > 0.033f*100000.f) { particlesAlive = 0.033f*100000.f; }
+
 	for (int i = lastUsed; i< LilSpheres::maxParticles; i++) {
 		if (ParticlesContainer[i].life < 0) {
 			lastUsed = i;
@@ -98,9 +104,8 @@ void PhysicsUpdate(float dt) {
 			}
 	}
 	
-	lastUsed = 0;
-
-	for (int i = 0; i < LilSpheres::maxParticles; i++) {
+	std::cout << dt << std::endl;
+	for (int i = 0; i < particleCounter; i++) {
 
 		Particle& p = ParticlesContainer[i];
 		if (p.life > 0.0f) {
@@ -108,7 +113,7 @@ void PhysicsUpdate(float dt) {
 
 		}
 		if (p.life > 0.0f) {
-
+			
 			float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
 
 			if (lastPos[i * 3 + 1] <= 0) { //Terra
@@ -142,25 +147,32 @@ void PhysicsUpdate(float dt) {
 			InitialPos[i * 3 + 2] = lastPos[i * 3 + 2];
 
 			//LilSpheres::updateParticles(0, LilSpheres::maxParticles, particleCOOR);
-			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
-			particleCounter++;
+			
+			
 		}
 		else {
-			for (int i = 0; i < LilSpheres::maxParticles; ++i) {
-				InitialPos[i * 3 + 0] = 0.f;
-				InitialPos[i * 3 + 1] = 2.f;
-				InitialPos[i * 3 + 2] = 0.f;
-				particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-				particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 8.f + 5.f;
-				particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-				ParticlesContainer[i].life = life;
+			if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= 1; }
+			
+				if (ParticlesContainer[i].life <= 0.0f) {
+				
+					InitialPos[i * 3 + 0] = 0.f;
+					InitialPos[i * 3 + 1] = 2.f;
+					InitialPos[i * 3 + 2] = 0.f;
+					particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 8.f + 5.f;
+					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+					ParticlesContainer[i].life = life;
+				
+					
+				}
 				
 			}
 		}
-		
+	LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
+	particleCounter += 1;
 	}
+	
 
-}
 
 
 
