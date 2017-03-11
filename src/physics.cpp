@@ -10,7 +10,7 @@ bool show_test_window = false;
 
 namespace LilSpheres {
 	extern const int maxParticles;
-	extern void setupParticles(int numTotalParticles, float radius = 0.08f);
+	extern void setupParticles(int numTotalParticles, float radius = 0.03f);
 	extern void cleanupParticles();
 	extern void updateParticles(int startIdx, int count, float* array_data);
 	extern void drawParticles(int startIdx, int count);
@@ -70,7 +70,7 @@ void PhysicsInit() {
 		InitialPos[i * 3 + 1] = 2.f;
 		InitialPos[i * 3 + 2] = 0.f;
 		particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-		particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 8.f + 5.f;
+		particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
 		particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 	}
 
@@ -83,21 +83,6 @@ void PhysicsUpdate(float dt) {
 	switch (mode) {
 
 	case 1:
-		if (particlesAlive > 0.033f*100000.f) { particlesAlive = 0.033f*100000.f; }
-
-		for (int i = lastUsed; i < LilSpheres::maxParticles; i++) {
-			if (ParticlesContainer[i].life < 0) {
-				lastUsed = i;
-			}
-		}
-
-		for (int i = 0; i < lastUsed; i++) {
-			if (ParticlesContainer[i].life < 0) {
-				lastUsed = i;
-			}
-		}
-
-
 		for (int i = 0; i < particleCounter; i++) {
 
 			Particle& p = ParticlesContainer[i];
@@ -128,7 +113,7 @@ void PhysicsUpdate(float dt) {
 					particleVel[i * 3 + 2] *= -0.9;
 				}
 
-
+				
 				lastPos[i * 3 + 0] = InitialPos[i * 3 + 0] + dt * particleVel[i * 3 + 0]; //Applies Euler on X
 				lastPos[i * 3 + 1] = InitialPos[i * 3 + 1] + dt * particleVel[i * 3 + 1]; //Applies Euler on Y
 				lastPos[i * 3 + 2] = InitialPos[i * 3 + 2] + dt * particleVel[i * 3 + 2]; //Applies Euler on Z
@@ -151,12 +136,13 @@ void PhysicsUpdate(float dt) {
 					InitialPos[i * 3 + 1] = 2.f;
 					InitialPos[i * 3 + 2] = 0.f;
 					particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 7.f + 5.f;
+					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
 					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
 					ParticlesContainer[i].life = lifeP;
-
+					
 
 				}
+				
 
 			}
 		}
