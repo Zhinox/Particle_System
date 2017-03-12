@@ -19,8 +19,6 @@ namespace LilSpheres {
 }
 
 static float lifeP = 3.f;
-float* particleCOOR;
-float* particleLast;
 static int PxS = 100;
 static float elasticity = 0.4f;
 
@@ -32,9 +30,8 @@ struct Particle {
 	glm::vec3 lastvector;
 };
 
-float *InitialPos;
-float *lastPos;
-float *particleVel;
+float *InitialPos,*lastPos,*particleVel,*particleCOOR,*particleLast;
+
 static int mode = 1;
 static int type = 1;
 int mode1 = 1;
@@ -42,6 +39,12 @@ int lastMode = 1;
 int lastUsed = 0;
 
 glm::vec3 terraN = { 0,1,0 };
+glm::vec3 sostreN = { 0,-1,0 };
+glm::vec3 dretaN = { 1,0,0 };
+glm::vec3 esquerraN = { -1,0,0 };
+glm::vec3 davantN = { 0,0,1 };
+glm::vec3 darreraN = { 0,0,-1 };
+
 Particle *totalParticles;
 int particleCounter = 1;
 
@@ -62,7 +65,7 @@ void GUI() {
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
 	ImGui::SliderInt("Particles per second", &PxS, 100, 300);
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
-	ImGui::SliderFloat("Elasticity", &elasticity, 0.1f, 0.9f);
+	ImGui::SliderFloat("Elasticity", &elasticity, 0.1f, 2.f);
 
 
 
@@ -147,9 +150,19 @@ void PhysicsUpdate(float dt) {
 					p.vector.y = p.newvector.y;
 					p.vector.z = p.newvector.z;
 
-					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) {
+					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) { //Calculate collision with ground
 						p.vector = p.vector - (1+elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
 						p.velvector = p.velvector - (1+elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
+					}
+
+					else if (calculateCollision(p.vector, p.lastvector, sostreN, 10) <= 0) { //Calculate collision with roof
+						p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(sostreN, p.velvector) + 10) * sostreN;
+					}
+
+					else if (calculateCollision(p.vector, p.lastvector, dretaN, 5) <= 0) { //Calculate collision with right wall
+						p.vector = p.vector - (1 + elasticity) * (glm::dot(dretaN, p.vector) + 10) * dretaN;
+						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(dretaN, p.velvector) + 10) * dretaN;
 					}
 
 				}
@@ -184,7 +197,7 @@ void PhysicsUpdate(float dt) {
 			if (lastMode == 1) {
 				for (int i = 0; i < LilSpheres::maxParticles; i++) {
 					totalParticles[i].vector = { -3.f,7.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
-					totalParticles[i].velvector = { 1.5f,((float)rand() / RAND_MAX) * 0.5f,((float)rand() / RAND_MAX) * 2.f - 1.f};
+					totalParticles[i].velvector = { 6.f,((float)rand() / RAND_MAX) * 0.5f,((float)rand() / RAND_MAX) * 2.f - 1.f};
 					totalParticles[i].life = lifeP;
 				}
 				particleCounter = 1;
@@ -214,6 +227,16 @@ void PhysicsUpdate(float dt) {
 					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) {
 						p.vector = p.vector - (1 + elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
 						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
+					}
+
+					else if (calculateCollision(p.vector, p.lastvector, sostreN, 10) <= 0) { //Calculate collision with roof
+						p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(sostreN, p.velvector) + 10) * sostreN;
+					}
+
+					else if (calculateCollision(p.vector, p.lastvector, dretaN, -5) <= 0) { //Calculate collision with right wall
+						p.vector = p.vector - (1 + elasticity) * (glm::dot(dretaN, p.vector)  -5) * dretaN;
+						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(dretaN, p.velvector) -5) * dretaN;
 					}
 
 				}
