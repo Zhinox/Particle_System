@@ -22,7 +22,7 @@ static float lifeP = 3.f;
 float* particleCOOR;
 float* particleLast;
 static int PxS = 100;
-static float elasticity = 4.2f;
+static float elasticity = 0.4f;
 
 struct Particle {
 	float life = 0.1f;
@@ -62,7 +62,7 @@ void GUI() {
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
 	ImGui::SliderInt("Particles per second", &PxS, 100, 300);
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
-	ImGui::SliderFloat("Elasticity", &elasticity, 0.5f, 9.f);
+	ImGui::SliderFloat("Elasticity", &elasticity, 0.1f, 0.9f);
 
 
 
@@ -186,7 +186,8 @@ void PhysicsUpdate(float dt) {
 					p.vector.z = p.newvector.z;
 
 					if (calculateCollision(p.vector, p.lastvector, terraN) <= 0) {
-						p.vector = p.vector - 2 * (glm::dot(terraN, p.vector) + 0) * terraN;
+						p.vector = p.vector - (1+elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
+						p.velvector = p.velvector - (1+elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
 					}
 					
 
