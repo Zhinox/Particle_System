@@ -172,8 +172,17 @@ void PhysicsUpdate(float dt) {
 					}
 
 					else if (calculateCollision(p.vector, p.lastvector, sostreN, 10) <= 0) { //Calculate collision with roof
-						p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
-						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(sostreN, p.velvector) + 10) * sostreN;
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(sostreN, p.velvector) + 10) * sostreN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+							p.velvector = p.velvector - 2 * glm::dot(sostreN, p.velvector) * sostreN;
+							glm::vec3 normalVel = glm::dot(sostreN, p.velvector) * sostreN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
 					}
 
 					
@@ -238,13 +247,31 @@ void PhysicsUpdate(float dt) {
 					p.vector.z = p.newvector.z;
 
 					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) {
-						p.vector = p.vector - (1 + elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
-						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
+							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(terraN, p.vector) + 0) * terraN;
+							p.velvector = p.velvector - 2 * glm::dot(terraN, p.velvector) * terraN;
+							glm::vec3 normalVel = glm::dot(terraN, p.velvector) * terraN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
 					}
 
 					else if (calculateCollision(p.vector, p.lastvector, sostreN, 10) <= 0) { //Calculate collision with roof
-						p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
-						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(sostreN, p.velvector) + 10) * sostreN;
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(sostreN, p.velvector) + 10) * sostreN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+							p.velvector = p.velvector - 2 * glm::dot(sostreN, p.velvector) * sostreN;
+							glm::vec3 normalVel = glm::dot(sostreN, p.velvector) * sostreN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
 					}
 
 				}
