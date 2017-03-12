@@ -74,22 +74,7 @@ void GUI() {
 }
 
 
-float calculateCollision(glm::vec3 vector, glm::vec3 newvector, glm::vec3 normal) {
-	float dotP1;
-	float dotP2;
-	float totalresult;
-	float d;
-	
-	dotP1 = (vector.x*normal.x) + (vector.y*normal.y) + (vector.z*normal.z);
-	dotP2 = (newvector.x*normal.x) + (newvector.y*normal.y) + (newvector.z*normal.z);
-	dotP1 = glm::dot(vector, normal);
-	dotP2 = glm::dot(newvector, normal);
-	d = 0;
-	
-	totalresult =  (dotP1 + d)*(dotP2 + d);
-
-	return totalresult;
-}
+float calculateCollision(glm::vec3 vector, glm::vec3 lastvector, glm::vec3 normal, int d) {	return (glm::dot(vector, normal) + d)*(glm::dot(lastvector, normal) + d);}
 
 void PhysicsInit() {
 
@@ -149,30 +134,7 @@ void PhysicsUpdate(float dt) {
 
 				if (p.life > 0.0f) {
 
-					//(n*pt+n)*(n*pt'+n) <= 0
-					
-					
-					if (lastPos[i * 3 + 1] <= 0) { //Terra
-						particleVel[i * 3 + 1] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 1] >= 10) { //Sostre
-						particleVel[i * 3 + 1] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 0] <= -5) { //Paret esquerra
-						particleVel[i * 3 + 0] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 0] >= 5) { //Paret dreta
-						particleVel[i * 3 + 0] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 2] >= 5) { //Paret davant
-						particleVel[i * 3 + 2] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
-						particleVel[i * 3 + 2] *= -elasticity*0.1;
-					}
-					
-					
-
+				
 					p.lastvector = p.vector;
 
 					p.newvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
@@ -185,11 +147,10 @@ void PhysicsUpdate(float dt) {
 					p.vector.y = p.newvector.y;
 					p.vector.z = p.newvector.z;
 
-					if (calculateCollision(p.vector, p.lastvector, terraN) <= 0) {
+					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) {
 						p.vector = p.vector - (1+elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
 						p.velvector = p.velvector - (1+elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
 					}
-					
 
 				}
 
@@ -238,25 +199,7 @@ void PhysicsUpdate(float dt) {
 				}
 				if (p.life > 0.0f) {
 
-					if (lastPos[i * 3 + 1] <= 0) { //Terra
-						particleVel[i * 3 + 1] *= -elasticity*0.1;
-						
-					}
-					else if (lastPos[i * 3 + 1] >= 10) { //Sostre
-						particleVel[i * 3 + 1] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 0] <= -5) { //Paret esquerra
-						particleVel[i * 3 + 0] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 0] >= 5) { //Paret dreta
-						particleVel[i * 3 + 0] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 2] >= 5) { //Paret davant
-						particleVel[i * 3 + 2] *= -elasticity*0.1;
-					}
-					else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
-						particleVel[i * 3 + 2] *= -elasticity*0.1;
-					}
+					p.lastvector = p.vector;
 
 					p.newvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
 					p.newvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
@@ -267,6 +210,11 @@ void PhysicsUpdate(float dt) {
 					p.vector.x = p.newvector.x;
 					p.vector.y = p.newvector.y;
 					p.vector.z = p.newvector.z;
+
+					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) {
+						p.vector = p.vector - (1 + elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
+						p.velvector = p.velvector - (1 + elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
+					}
 
 				}
 
