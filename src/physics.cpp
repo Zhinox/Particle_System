@@ -39,7 +39,8 @@ int mode1 = 1;
 int lastMode = 1;
 int lastUsed = 0;
 int effect = 1;
-
+float gravity = 9.81;
+int lastcase = 1;
 glm::vec3 terraN = { 0,1,0 };
 glm::vec3 sostreN = { 0,-1,0 };
 glm::vec3 leftN = { 1,0,0 };
@@ -128,6 +129,16 @@ void PhysicsUpdate(float dt) {
 
 		//Euler
 	case 1:
+		if (lastcase == 2) {
+			for (int i = 0; i < LilSpheres::maxParticles; i++) {
+				totalParticles[i].vector = { 0.f,2.f,0.f };
+				totalParticles[i].velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+				totalParticles[i].life = lifeP;
+			}
+			particleCounter = 1;
+			lastcase = 1;
+
+		}
 		//Fountain
 		if (type == 1) {
 			if (lastMode == 2) {
@@ -158,7 +169,7 @@ void PhysicsUpdate(float dt) {
 					p.newvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
 					p.newvector.z = p.vector.z + dt * p.velvector.z; //Euler on Z
 
-					p.velvector.y = p.velvector.y + dt * -9.81; //Velocity on Y
+					p.velvector.y = p.velvector.y + dt * -gravity; //Velocity on Y
 
 					p.vector.x = p.newvector.x;
 					p.vector.y = p.newvector.y;
@@ -167,7 +178,7 @@ void PhysicsUpdate(float dt) {
 					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) { //Calculate collision with ground
 						if (effect == 1) {//Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(terraN, p.velvector)  * terraN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(terraN, p.vector) + 0) * terraN;
@@ -181,7 +192,7 @@ void PhysicsUpdate(float dt) {
 					else if (calculateCollision(p.vector, p.lastvector, sostreN, 10) <= 0) { //Calculate collision with roof
 						if (effect == 1) { //Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(sostreN, p.velvector) + 10) * sostreN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(sostreN, p.velvector) * sostreN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(sostreN, p.vector) + 10) * sostreN;
@@ -195,7 +206,7 @@ void PhysicsUpdate(float dt) {
 					else if (calculateCollision(p.vector, p.lastvector, leftN, 5) <= 0) { //Calculate collision left wall
 						if (effect == 1) { //Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(leftN, p.vector) + 5) * leftN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(leftN, p.velvector) - 5) * leftN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(leftN, p.velvector) * leftN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(leftN, p.vector) + 5) * leftN;
@@ -209,7 +220,7 @@ void PhysicsUpdate(float dt) {
 					else if (calculateCollision(p.vector, p.lastvector, rightN, 5) <= 0) { //Calculate collision right wall
 						if (effect == 1) { //Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(rightN, p.vector) + 5) * rightN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(rightN, p.velvector) - 5) * rightN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(rightN, p.velvector) * rightN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(rightN, p.vector) + 5) * rightN;
@@ -223,12 +234,25 @@ void PhysicsUpdate(float dt) {
 					else if (calculateCollision(p.vector, p.lastvector, frontN, 5) <= 0) { //Calculate collision front wall
 						if (effect == 1) { //Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(frontN, p.vector) + 5) * frontN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(frontN, p.velvector) - 5) * frontN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(frontN, p.velvector) * frontN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(frontN, p.vector) + 5) * frontN;
 							p.velvector = p.velvector - 2 * glm::dot(frontN, p.velvector) * frontN;
 							glm::vec3 normalVel = glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+					else if (calculateCollision(p.vector, p.lastvector, backN, 5) <= 0) { //Calculate collision back wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(backN, p.vector) + 5) * backN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(backN, p.velvector) * backN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(backN, p.vector) + 5) * backN;
+							p.velvector = p.velvector - 2 * glm::dot(backN, p.velvector) * backN;
+							glm::vec3 normalVel = glm::dot(backN, p.velvector) * backN;
 							glm::vec3 tanVel = p.velvector - normalVel;
 							p.velvector = p.velvector - friction * tanVel;
 						}
@@ -286,7 +310,7 @@ void PhysicsUpdate(float dt) {
 					p.vector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
 					p.vector.z = p.vector.z + dt * p.velvector.z; //Euler on Z
 
-					p.velvector.y = p.velvector.y + dt * -9.81; //Velocity on Y
+					p.velvector.y = p.velvector.y + dt * -gravity; //Velocity on Y
 
 					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) { //Calculate collision with ground
 						if (effect == 1) { //Elasticity
@@ -400,27 +424,253 @@ void PhysicsUpdate(float dt) {
 		break;
 
 
-		//Verlet
+	//Verlet
 	case 2:
+		if (lastcase == 1) {
+			for (int i = 0; i < LilSpheres::maxParticles; i++) {
+				totalParticles[i].vector = { 0.f,2.f,0.f };
+				totalParticles[i].velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+				totalParticles[i].life = lifeP;
+			}
+			particleCounter = 1;
+			lastcase = 2;
 
-		//for (int i = 0; i < LilSpheres::maxParticles; ++i) { //Verlet
+		}
+		//Fountain
+		if (type == 1) {
+			if (lastMode == 2) {
+				for (int i = 0; i < LilSpheres::maxParticles; i++) {
+					totalParticles[i].vector = { 0.f,2.f,0.f };
+					totalParticles[i].velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+					totalParticles[i].life = lifeP;
+				}
+				particleCounter = 1;
+				lastMode = 1;
+			}
 
-		//	float temp[3]{ particleCOOR[i * 3 + 0], particleCOOR[i * 3 + 1],  particleCOOR[i * 3 + 2] }; //Stores on temp variable the last position for each axis
+			for (int i = 0; i < particleCounter; i++) {
+				Particle& p = totalParticles[i];
+				if (p.life > 0.0f) {p.life -= dt;}
 
-		//	particleCOOR[i * 3 + 1] = particleCOOR[i * 3 + 1] + (particleCOOR[i * 3 + 1] - particleLast[i * 3 + 1]) + (-9.81f * (dt*dt)); //Applies Verlet on Y
+				if (p.life > 0.0f) {
 
-		//	particleLast[i * 3 + 0] = temp[0]; particleLast[i * 3 + 1] = temp[1]; 	particleLast[i * 3 + 2] = temp[2]; //Stores each position axis on particleLast
+					p.lastvector = p.vector;
+					p.newvector.x = p.vector.x + dt * p.velvector.x; p.newvector.y = p.vector.y + dt * p.velvector.y; p.newvector.z = p.vector.z + dt * p.velvector.z; 
+					p.velvector.y = p.velvector.y + dt * -gravity; 
+					p.vector.x = p.newvector.x; p.vector.y = p.newvector.y;	p.vector.z = p.newvector.z;
 
-		//	
+					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) { //Calculate collision with ground
+						if (effect == 1) {//Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(terraN, p.velvector)  * terraN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(terraN, p.vector) + 0) * terraN;
+							p.velvector = p.velvector - 2 * glm::dot(terraN, p.velvector) * terraN;
+							glm::vec3 normalVel = glm::dot(terraN, p.velvector) * terraN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
 
-		//}
+					else if (calculateCollision(p.vector, p.lastvector, sostreN, 10) <= 0) { //Calculate collision with roof
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(sostreN, p.velvector) * sostreN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+							p.velvector = p.velvector - 2 * glm::dot(sostreN, p.velvector) * sostreN;
+							glm::vec3 normalVel = glm::dot(sostreN, p.velvector) * sostreN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
 
-		//LilSpheres::updateParticles(0, LilSpheres::maxParticles, particleCOOR);
+					else if (calculateCollision(p.vector, p.lastvector, leftN, 5) <= 0) { //Calculate collision left wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(leftN, p.vector) + 5) * leftN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(leftN, p.velvector) * leftN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(leftN, p.vector) + 5) * leftN;
+							p.velvector = p.velvector - 2 * glm::dot(leftN, p.velvector) * leftN;
+							glm::vec3 normalVel = glm::dot(leftN, p.velvector) * leftN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+
+					else if (calculateCollision(p.vector, p.lastvector, rightN, 5) <= 0) { //Calculate collision right wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(rightN, p.vector) + 5) * rightN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(rightN, p.velvector) * rightN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(rightN, p.vector) + 5) * rightN;
+							p.velvector = p.velvector - 2 * glm::dot(rightN, p.velvector) * rightN;
+							glm::vec3 normalVel = glm::dot(rightN, p.velvector) * rightN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+
+					else if (calculateCollision(p.vector, p.lastvector, frontN, 5) <= 0) { //Calculate collision front wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(frontN, p.vector) + 5) * frontN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(frontN, p.velvector) * frontN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(frontN, p.vector) + 5) * frontN;
+							p.velvector = p.velvector - 2 * glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 normalVel = glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+					else if (calculateCollision(p.vector, p.lastvector, backN, 5) <= 0) { //Calculate collision back wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(backN, p.vector) + 5) * backN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(backN, p.velvector) * backN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(backN, p.vector) + 5) * backN;
+							p.velvector = p.velvector - 2 * glm::dot(backN, p.velvector) * backN;
+							glm::vec3 normalVel = glm::dot(backN, p.velvector) * backN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+				}
+				else {
+					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= PxS; }
+					if (totalParticles[i].life <= 0.0f) {
+						totalParticles[i].vector = { 0.f,2.f,0.f };
+						totalParticles[i].velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+						totalParticles[i].life = lifeP;
+					}
+				}
+			}
+
+			for (int i = 0; i < LilSpheres::maxParticles; i++) {InitialPos[i * 3 + 0] = totalParticles[i].vector.x;InitialPos[i * 3 + 1] = totalParticles[i].vector.y;InitialPos[i * 3 + 2] = totalParticles[i].vector.z;}
+			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
+			if (particleCounter + PxS <= LilSpheres::maxParticles) { particleCounter += PxS; }
+		}
+
+		//Cascade
+		else if (type == 2) {
+			if (lastMode == 1) {
+				for (int i = 0; i < LilSpheres::maxParticles; i++) {
+					totalParticles[i].vector = { -3.f,7.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+					totalParticles[i].velvector = { 1.5f,((float)rand() / RAND_MAX) * 0.5f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+					totalParticles[i].life = lifeP;
+				}
+				particleCounter = 1;
+				lastMode = 2;
+			}
+			for (int i = 0; i < particleCounter; i++) {
+				Particle& p = totalParticles[i];
+				if (p.life > 0.0f) {
+					p.life -= dt;
+				}
+				if (p.life > 0.0f) {
+					p.lastvector = p.vector;
+					p.vector.x = p.vector.x + dt * p.velvector.x; p.vector.y = p.vector.y + dt * p.velvector.y; p.vector.z = p.vector.z + dt * p.velvector.z; p.velvector.y = p.velvector.y + dt * -gravity; 
+					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) { //Calculate collision with ground
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(terraN, p.velvector) * terraN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(terraN, p.vector) + 0) * terraN;
+							p.velvector = p.velvector - 2 * glm::dot(terraN, p.velvector) * terraN;
+							glm::vec3 normalVel = glm::dot(terraN, p.velvector) * terraN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+					else if (calculateCollision(p.vector, p.lastvector, sostreN, 10) <= 0) { //Calculate collision with roof
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(sostreN, p.velvector) * sostreN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(sostreN, p.vector) + 10) * sostreN;
+							p.velvector = p.velvector - 2 * glm::dot(sostreN, p.velvector) * sostreN;
+							glm::vec3 normalVel = glm::dot(sostreN, p.velvector) * sostreN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+					else if (calculateCollision(p.vector, p.lastvector, leftN, 5) <= 0) { //Calculate collision left wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(leftN, p.vector) + 5) * leftN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(leftN, p.velvector) * leftN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(leftN, p.vector) + 5) * leftN;
+							p.velvector = p.velvector - 2 * glm::dot(leftN, p.velvector) * leftN;
+							glm::vec3 normalVel = glm::dot(leftN, p.velvector) * leftN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+					else if (calculateCollision(p.vector, p.lastvector, rightN, 5) <= 0) { //Calculate collision right wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(rightN, p.vector) + 5) * rightN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(rightN, p.velvector) * rightN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(rightN, p.vector) + 5) * rightN;
+							p.velvector = p.velvector - 2 * glm::dot(rightN, p.velvector) * rightN;
+							glm::vec3 normalVel = glm::dot(rightN, p.velvector) * rightN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+					else if (calculateCollision(p.vector, p.lastvector, frontN, 5) <= 0) { //Calculate collision front wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(frontN, p.vector) + 5) * frontN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(frontN, p.velvector) * frontN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(frontN, p.vector) + 5) * frontN;
+							p.velvector = p.velvector - 2 * glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 normalVel = glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+					else if (calculateCollision(p.vector, p.lastvector, backN, 5) <= 0) { //Calculate collision back wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(backN, p.vector) + 5) * backN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(backN, p.velvector) * backN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(backN, p.vector) + 5) * backN;
+							p.velvector = p.velvector - 2 * glm::dot(backN, p.velvector) * backN;
+							glm::vec3 normalVel = glm::dot(backN, p.velvector) * backN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+				}
+				else {
+					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= PxS; }
+
+					else if (totalParticles[i].life <= 0.0f) {
+						totalParticles[i].vector = { -3.f,7.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+						totalParticles[i].velvector = { 1.5f,((float)rand() / RAND_MAX) * 0.5f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+						totalParticles[i].life = lifeP;
+					}
+				}
+			}
+			for (int i = 0; i < LilSpheres::maxParticles; i++) {InitialPos[i * 3 + 0] = totalParticles[i].vector.x;InitialPos[i * 3 + 1] = totalParticles[i].vector.y;InitialPos[i * 3 + 2] = totalParticles[i].vector.z;}
+			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
+			if (particleCounter + PxS <= LilSpheres::maxParticles) { particleCounter += PxS; }
+		}
 		break;
-
 	}
-
-
 }
 
 
