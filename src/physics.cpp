@@ -29,6 +29,7 @@ struct Particle {
 	glm::vec3 vector = { 0.f,2.f,0.f };
 	glm::vec3 velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f, };
 	glm::vec3 newvector;
+	glm::vec3 lastvector;
 };
 
 float *InitialPos;
@@ -78,10 +79,12 @@ float calculateCollision(glm::vec3 vector, glm::vec3 newvector, glm::vec3 normal
 	float dotP2;
 	float totalresult;
 	float d;
-
+	
 	dotP1 = (vector.x*normal.x) + (vector.y*normal.y) + (vector.z*normal.z);
 	dotP2 = (newvector.x*normal.x) + (newvector.y*normal.y) + (newvector.z*normal.z);
-	d = (normal.x*vector.x) + (normal.y*vector.y) + (normal.z*vector.z);
+	dotP1 = glm::dot(vector, normal);
+	dotP2 = glm::dot(newvector, normal);
+	d = 0;
 	
 	totalresult =  (dotP1 + d)*(dotP2 + d);
 
@@ -168,10 +171,9 @@ void PhysicsUpdate(float dt) {
 						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
 					
-					if (calculateCollision(p.vector, p.newvector, terraN) <= 0) {
-						p.velvector.y *= -elasticity*0.1;
-						
-					}
+					
+
+					p.lastvector = p.vector;
 
 					p.newvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
 					p.newvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
@@ -183,6 +185,9 @@ void PhysicsUpdate(float dt) {
 					p.vector.y = p.newvector.y;
 					p.vector.z = p.newvector.z;
 
+					if (calculateCollision(p.vector, p.lastvector, terraN) <= 0) {
+						p.vector = p.vector - 2 * (glm::dot(terraN, p.vector) + 0) * terraN;
+					}
 					
 
 				}
