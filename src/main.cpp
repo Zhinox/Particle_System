@@ -10,6 +10,7 @@
 static GLFWwindow *window;
 
 extern void PhysicsInit();
+extern void dotProduct();
 extern void PhysicsUpdate(float dt);
 extern void PhysicsCleanup();
 extern void GUI();

@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <iostream>
 #include <time.h>
+#include <math.h>
 
 bool show_test_window = false;
 
@@ -27,7 +28,7 @@ struct Particle {
 	float life = 0.1f;
 	glm::vec3 vector = { 0.f,2.f,0.f };
 	glm::vec3 velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f, };
-	glm::vec3 lastvector;
+	glm::vec3 newvector;
 };
 
 float *InitialPos;
@@ -69,6 +70,22 @@ void GUI() {
 		ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
 		ImGui::ShowTestWindow(&show_test_window);
 	}
+}
+
+
+float calculateCollision(glm::vec3 vector, glm::vec3 newvector, glm::vec3 normal) {
+	float dotP1;
+	float dotP2;
+	float totalresult;
+	float d;
+
+	dotP1 = (vector.x*normal.x) + (vector.y*normal.y) + (vector.z*normal.z);
+	dotP2 = (newvector.x*normal.x) + (newvector.y*normal.y) + (newvector.z*normal.z);
+	d = (normal.x*vector.x) + (normal.y*vector.y) + (normal.z*vector.z);
+	
+	totalresult =  (dotP1 + d)*(dotP2 + d);
+
+	return totalresult;
 }
 
 void PhysicsInit() {
@@ -130,9 +147,7 @@ void PhysicsUpdate(float dt) {
 				if (p.life > 0.0f) {
 
 					//(n*pt+n)*(n*pt'+n) <= 0
-					if ((terraN.y * p.lastvector.y + terraN.y)*(terraN.y*p.vector.y + terraN.y) <= 0) {
-						p.velvector.y *= -elasticity*0.1;
-					}
+					
 					
 					if (lastPos[i * 3 + 1] <= 0) { //Terra
 						particleVel[i * 3 + 1] *= -elasticity*0.1;
@@ -152,16 +167,23 @@ void PhysicsUpdate(float dt) {
 					else if (lastPos[i * 3 + 2] <= -5) { //Paret darrera
 						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
+					
+					if (calculateCollision(p.vector, p.newvector, terraN) <= 0) {
+						p.velvector.y *= -elasticity*0.1;
+						
+					}
 
-					p.lastvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
-					p.lastvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
-					p.lastvector.z = p.vector.z + dt * p.velvector.z; //Euler on Z
+					p.newvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
+					p.newvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
+					p.newvector.z = p.vector.z + dt * p.velvector.z; //Euler on Z
 
 					p.velvector.y = p.velvector.y + dt * -9.81; //Velocity on Y
 
-					p.vector.x = p.lastvector.x;
-					p.vector.y = p.lastvector.y;
-					p.vector.z = p.lastvector.z;
+					p.vector.x = p.newvector.x;
+					p.vector.y = p.newvector.y;
+					p.vector.z = p.newvector.z;
+
+					
 
 				}
 
@@ -230,15 +252,15 @@ void PhysicsUpdate(float dt) {
 						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
 
-					p.lastvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
-					p.lastvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
-					p.lastvector.z = p.vector.z + dt * p.velvector.z; //Euler on Z
+					p.newvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
+					p.newvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
+					p.newvector.z = p.vector.z + dt * p.velvector.z; //Euler on Z
 
 					p.velvector.y = p.velvector.y + dt * -9.81; //Velocity on Y
 
-					p.vector.x = p.lastvector.x;
-					p.vector.y = p.lastvector.y;
-					p.vector.z = p.lastvector.z;
+					p.vector.x = p.newvector.x;
+					p.vector.y = p.newvector.y;
+					p.vector.z = p.newvector.z;
 
 				}
 
@@ -292,8 +314,8 @@ void PhysicsUpdate(float dt) {
 
 
 
-
-
 void PhysicsCleanup() {
 	LilSpheres::cleanupParticles();
 }
+
+
