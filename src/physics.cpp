@@ -21,11 +21,13 @@ static float lifeP = 3.f;
 float* particleCOOR;
 float* particleLast;
 static int PxS = 100;
-static float elasticity = 5;
+static float elasticity = 4.2f;
 
 struct Particle {
 	float life = 0.1f;
-
+	glm::vec3 vector = { 0.f,2.f,0.f };
+	glm::vec3 velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f, };
+	glm::vec3 lastvector;
 };
 
 float *InitialPos;
@@ -37,7 +39,8 @@ int mode1 = 1;
 int lastMode = 1;
 int lastUsed = 0;
 
-Particle totalParticles[SHRT_MAX];
+glm::vec3 terraN = { 0,1,0 };
+Particle *totalParticles;
 int particleCounter = 1;
 
 void GUI() {
@@ -57,8 +60,8 @@ void GUI() {
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
 	ImGui::SliderInt("Particles per second", &PxS, 100, 300);
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
-	ImGui::SliderFloat("Elasticity", &elasticity, 0, 9.f);
-	
+	ImGui::SliderFloat("Elasticity", &elasticity, 0.5f, 9.f);
+
 
 
 
@@ -69,7 +72,7 @@ void GUI() {
 }
 
 void PhysicsInit() {
-	
+
 	LilSpheres::setupParticles(LilSpheres::maxParticles);
 
 	particleCOOR = new float[LilSpheres::maxParticles * 3];
@@ -77,7 +80,7 @@ void PhysicsInit() {
 	InitialPos = new float[LilSpheres::maxParticles * 3];
 	particleVel = new float[LilSpheres::maxParticles * 3];
 	lastPos = new float[LilSpheres::maxParticles * 3];
-	
+	totalParticles = new Particle[SHRT_MAX];
 
 
 
@@ -88,13 +91,8 @@ void PhysicsInit() {
 
 	}
 	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
-		
-		InitialPos[i * 3 + 0] = 0.f;
-		InitialPos[i * 3 + 1] = 2.f;
-		InitialPos[i * 3 + 2] = 0.f;
-		particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-		particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
-		particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+		totalParticles[i].vector = { 0.f,2.f,0.f };
+		totalParticles[i].velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
 	}
 
 
@@ -103,32 +101,24 @@ void PhysicsInit() {
 
 void PhysicsUpdate(float dt) {
 
-	
+
 	switch (mode) {
 
+		//Euler
 	case 1:
-	
+		//Fountain
 		if (type == 1) {
 			if (lastMode == 2) {
 
 				for (int i = 0; i < LilSpheres::maxParticles; i++) {
-
-					InitialPos[i * 3 + 0] = 0.f;
-					InitialPos[i * 3 + 1] = 2.f;
-					InitialPos[i * 3 + 2] = 0.f;
-					particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
-					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+					totalParticles[i].vector = { 0.f,2.f,0.f };
+					totalParticles[i].velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
 					totalParticles[i].life = lifeP;
-
-
 				}
 				particleCounter = 1;
 				lastMode = 1;
-
-
-
 			}
+
 			for (int i = 0; i < particleCounter; i++) {
 
 				Particle& p = totalParticles[i];
@@ -136,10 +126,14 @@ void PhysicsUpdate(float dt) {
 					p.life -= dt;
 
 				}
-				if (p.life > 0.0f) {
-					
-					float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
 
+				if (p.life > 0.0f) {
+
+					//(n*pt+n)*(n*pt'+n) <= 0
+					if ((terraN.y * p.lastvector.y + terraN.y)*(terraN.y*p.vector.y + terraN.y) <= 0) {
+						p.velvector.y *= -elasticity*0.1;
+					}
+					
 					if (lastPos[i * 3 + 1] <= 0) { //Terra
 						particleVel[i * 3 + 1] *= -elasticity*0.1;
 					}
@@ -159,59 +153,54 @@ void PhysicsUpdate(float dt) {
 						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
 
+					p.lastvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
+					p.lastvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
+					p.lastvector.z = p.vector.z + dt * p.velvector.z; //Euler on Z
 
-					lastPos[i * 3 + 0] = InitialPos[i * 3 + 0] + dt * particleVel[i * 3 + 0]; //Applies Euler on X
-					lastPos[i * 3 + 1] = InitialPos[i * 3 + 1] + dt * particleVel[i * 3 + 1]; //Applies Euler on Y
-					lastPos[i * 3 + 2] = InitialPos[i * 3 + 2] + dt * particleVel[i * 3 + 2]; //Applies Euler on Z
+					p.velvector.y = p.velvector.y + dt * -9.81; //Velocity on Y
 
-					particleVel[i * 3 + 1] = particleVel[i * 3 + 1] + dt * -9.81;
-
-					InitialPos[i * 3 + 0] = lastPos[i * 3 + 0];
-					InitialPos[i * 3 + 1] = lastPos[i * 3 + 1];
-					InitialPos[i * 3 + 2] = lastPos[i * 3 + 2];
-
-
+					p.vector.x = p.lastvector.x;
+					p.vector.y = p.lastvector.y;
+					p.vector.z = p.lastvector.z;
 
 				}
+
 				else {
 					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= PxS; }
 
 					if (totalParticles[i].life <= 0.0f) {
-						InitialPos[i * 3 + 0] = 0.f;
-						InitialPos[i * 3 + 1] = 2.f;
-						InitialPos[i * 3 + 2] = 0.f;
-						particleVel[i * 3 + 0] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 5.f + 4.f;
-						particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+						totalParticles[i].vector = { 0.f,2.f,0.f };
+						totalParticles[i].velvector = { ((float)rand() / RAND_MAX) * 2.f - 1.f,((float)rand() / RAND_MAX) * 5.f + 4.f,((float)rand() / RAND_MAX) * 2.f - 1.f};
+
 						totalParticles[i].life = lifeP;
-
-
 					}
-
-
 				}
 			}
+			
+			for (int i = 0; i < LilSpheres::maxParticles; i++) {
+				InitialPos[i * 3 + 0] = totalParticles[i].vector.x;
+				InitialPos[i * 3 + 1] = totalParticles[i].vector.y;
+				InitialPos[i * 3 + 2] = totalParticles[i].vector.z;
+
+			}
+
 			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
+
 			if (particleCounter + PxS <= LilSpheres::maxParticles) { particleCounter += PxS; }
 		}
+
+		//Cascade
 		else if (type == 2) {
 			
 			if (lastMode == 1) {
 				for (int i = 0; i < LilSpheres::maxParticles; i++) {
-
-					InitialPos[i * 3 + 0] = -3.f;
-					InitialPos[i * 3 + 1] = 7.f;
-					InitialPos[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-					particleVel[i * 3 + 0] = 1.5f;
-					particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 0.5f;
-					particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+					totalParticles[i].vector = { -3.f,7.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+					totalParticles[i].velvector = { 1.5f,((float)rand() / RAND_MAX) * 0.5f,((float)rand() / RAND_MAX) * 2.f - 1.f};
 					totalParticles[i].life = lifeP;
-
 				}
 				particleCounter = 1;
 				lastMode = 2;
-
-			}
+				}
 			for (int i = 0; i < particleCounter; i++) {
 
 				Particle& p = totalParticles[i];
@@ -220,8 +209,6 @@ void PhysicsUpdate(float dt) {
 
 				}
 				if (p.life > 0.0f) {
-
-					float temp[3]{ InitialPos[i * 3 + 0], InitialPos[i * 3 + 1],  InitialPos[i * 3 + 2] }; //Stores on temp variable the last position for each axis
 
 					if (lastPos[i * 3 + 1] <= 0) { //Terra
 						particleVel[i * 3 + 1] *= -elasticity*0.1;
@@ -243,34 +230,36 @@ void PhysicsUpdate(float dt) {
 						particleVel[i * 3 + 2] *= -elasticity*0.1;
 					}
 
+					p.lastvector.x = p.vector.x + dt * p.velvector.x; //Euler on X
+					p.lastvector.y = p.vector.y + dt * p.velvector.y; //Euler on Y
+					p.lastvector.z = p.vector.z + dt * p.velvector.z; //Euler on Z
 
-					lastPos[i * 3 + 0] = InitialPos[i * 3 + 0] + dt * particleVel[i * 3 + 0]; //Applies Euler on X
-					lastPos[i * 3 + 1] = InitialPos[i * 3 + 1] + dt * particleVel[i * 3 + 1]; //Applies Euler on Y
-					lastPos[i * 3 + 2] = InitialPos[i * 3 + 2] + dt * particleVel[i * 3 + 2]; //Applies Euler on Z
+					p.velvector.y = p.velvector.y + dt * -9.81; //Velocity on Y
 
-					particleVel[i * 3 + 1] = particleVel[i * 3 + 1] + dt * -9.81;
-
-					InitialPos[i * 3 + 0] = lastPos[i * 3 + 0];
-					InitialPos[i * 3 + 1] = lastPos[i * 3 + 1];
-					InitialPos[i * 3 + 2] = lastPos[i * 3 + 2];
-
-
+					p.vector.x = p.lastvector.x;
+					p.vector.y = p.lastvector.y;
+					p.vector.z = p.lastvector.z;
 
 				}
+
 				else {
 					if (particleCounter >= LilSpheres::maxParticles) { particleCounter -= PxS; }
 
 					if (totalParticles[i].life <= 0.0f) {
-						InitialPos[i * 3 + 0] = -3.f;
-						InitialPos[i * 3 + 1] = 7.f;
-						InitialPos[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
-						particleVel[i * 3 + 0] = 1.5f;
-						particleVel[i * 3 + 1] = ((float)rand() / RAND_MAX) * 0.5f;
-						particleVel[i * 3 + 2] = ((float)rand() / RAND_MAX) * 2.f - 1.f;
+						totalParticles[i].vector = { -3.f,7.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+						totalParticles[i].velvector = { 1.5f,((float)rand() / RAND_MAX) * 0.5f,((float)rand() / RAND_MAX) * 2.f - 1.f };
 						totalParticles[i].life = lifeP;
 					}
 				}
 			}
+
+			for (int i = 0; i < LilSpheres::maxParticles; i++) {
+				InitialPos[i * 3 + 0] = totalParticles[i].vector.x;
+				InitialPos[i * 3 + 1] = totalParticles[i].vector.y;
+				InitialPos[i * 3 + 2] = totalParticles[i].vector.z;
+
+			}
+
 			LilSpheres::updateParticles(0, LilSpheres::maxParticles, InitialPos);
 			if (particleCounter + PxS <= LilSpheres::maxParticles) { particleCounter += PxS; }
 		}
@@ -278,7 +267,7 @@ void PhysicsUpdate(float dt) {
 		break;
 
 
-
+	//Verlet
 	case 2:
 
 		for (int i = 0; i < LilSpheres::maxParticles; ++i) { //Verlet
@@ -289,11 +278,11 @@ void PhysicsUpdate(float dt) {
 
 			particleLast[i * 3 + 0] = temp[0]; particleLast[i * 3 + 1] = temp[1]; 	particleLast[i * 3 + 2] = temp[2]; //Stores each position axis on particleLast
 
-			LilSpheres::updateParticles(0, LilSpheres::maxParticles, particleCOOR);
+			
 
 		}
 
-
+		LilSpheres::updateParticles(0, LilSpheres::maxParticles, particleCOOR);
 		break;
 	}
 
