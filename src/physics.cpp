@@ -44,8 +44,8 @@ glm::vec3 terraN = { 0,1,0 };
 glm::vec3 sostreN = { 0,-1,0 };
 glm::vec3 leftN = { 1,0,0 };
 glm::vec3 rightN = { -1,0,0 };
-glm::vec3 davantN = { 0,0,1 };
-glm::vec3 darreraN = { 0,0,-1 };
+glm::vec3 backN = { 0,0,1 };
+glm::vec3 frontN = { 0,0,-1 };
 
 Particle *totalParticles;
 int particleCounter = 1;
@@ -63,7 +63,7 @@ void GUI() {
 	ImGui::Text("Fountain-Cascade");
 	ImGui::SliderInt("", &type, 1, 2);
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
-	ImGui::SliderFloat("Life expectancy", &lifeP, 1.f, 6.f);
+	ImGui::SliderFloat("Life expectancy", &lifeP, 1.f, 8.f);
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
 	ImGui::SliderInt("Particles per second", &PxS, 100, 300);
 	ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
@@ -212,6 +212,20 @@ void PhysicsUpdate(float dt) {
 							p.velvector = p.velvector - friction * tanVel;
 						}
 					}
+
+					else if (calculateCollision(p.vector, p.lastvector, frontN, 5) <= 0) { //Calculate collision front wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(frontN, p.vector) + 5) * frontN;
+							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(frontN, p.velvector) - 5) * frontN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(frontN, p.vector) + 5) * frontN;
+							p.velvector = p.velvector - 2 * glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 normalVel = glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
 				}
 
 				else {
@@ -244,7 +258,7 @@ void PhysicsUpdate(float dt) {
 			if (lastMode == 1) {
 				for (int i = 0; i < LilSpheres::maxParticles; i++) {
 					totalParticles[i].vector = { -3.f,7.f,((float)rand() / RAND_MAX) * 2.f - 1.f };
-					totalParticles[i].velvector = { -6.f,((float)rand() / RAND_MAX) * 0.5f,((float)rand() / RAND_MAX) * 2.f - 1.f };
+					totalParticles[i].velvector = { 1.5f,((float)rand() / RAND_MAX) * 0.5f,((float)rand() / RAND_MAX) * 2.f - 1.f };
 					totalParticles[i].life = lifeP;
 				}
 				particleCounter = 1;
@@ -274,7 +288,7 @@ void PhysicsUpdate(float dt) {
 					if (calculateCollision(p.vector, p.lastvector, terraN, 0) <= 0) {
 						if (effect == 1) { //Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(terraN, p.vector) + 0) * terraN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(terraN, p.velvector) + 0) * terraN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(terraN, p.velvector) * terraN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(terraN, p.vector) + 0) * terraN;
@@ -288,7 +302,7 @@ void PhysicsUpdate(float dt) {
 					else if (calculateCollision(p.vector, p.lastvector, sostreN, 10) <= 0) { //Calculate collision with roof
 						if (effect == 1) { //Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(sostreN, p.vector) + 10) * sostreN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(sostreN, p.velvector) + 10) * sostreN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(sostreN, p.velvector) * sostreN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(sostreN, p.vector) + 10) * sostreN;
@@ -302,7 +316,7 @@ void PhysicsUpdate(float dt) {
 					else if (calculateCollision(p.vector, p.lastvector, leftN, 5) <= 0) { //Calculate collision left wall
 						if (effect == 1) { //Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(leftN, p.vector) + 5) * leftN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(leftN, p.velvector) - 5) * leftN;
+							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(leftN, p.velvector) + p.velvector.y) * leftN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(leftN, p.vector) + 5) * leftN;
@@ -316,7 +330,7 @@ void PhysicsUpdate(float dt) {
 					else if (calculateCollision(p.vector, p.lastvector, rightN, 5) <= 0) { //Calculate collision right wall
 						if (effect == 1) { //Elasticity
 							p.vector = p.vector - (1 + elasticity) * (glm::dot(rightN, p.vector) + 5) * rightN;
-							p.velvector = p.velvector - (1 + elasticity) * (glm::dot(rightN, p.velvector) - 5) * rightN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(rightN, p.velvector + p.velvector.y) * rightN;
 						}
 						else if (effect == 2) {//Friction
 							p.vector = p.vector - 2 * (glm::dot(rightN, p.vector) + 5) * rightN;
@@ -326,6 +340,34 @@ void PhysicsUpdate(float dt) {
 							p.velvector = p.velvector - friction * tanVel;
 						}
 					}
+
+				else if (calculateCollision(p.vector, p.lastvector, frontN, 5) <= 0) { //Calculate collision front wall
+						if (effect == 1) { //Elasticity
+							p.vector = p.vector - (1 + elasticity) * (glm::dot(frontN, p.vector) + 5) * frontN;
+							p.velvector = p.velvector - (1 + elasticity) * glm::dot(frontN, p.velvector) * frontN;
+						}
+						else if (effect == 2) {//Friction
+							p.vector = p.vector - 2 * (glm::dot(frontN, p.vector) + 5) * frontN;
+							p.velvector = p.velvector - 2 * glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 normalVel = glm::dot(frontN, p.velvector) * frontN;
+							glm::vec3 tanVel = p.velvector - normalVel;
+							p.velvector = p.velvector - friction * tanVel;
+						}
+					}
+
+				else if (calculateCollision(p.vector, p.lastvector, backN, 5) <= 0) { //Calculate collision back wall
+					if (effect == 1) { //Elasticity
+						p.vector = p.vector - (1 + elasticity) * (glm::dot(backN, p.vector) + 5) * backN;
+						p.velvector = p.velvector - (1 + elasticity) * glm::dot(backN, p.velvector) * backN;
+					}
+					else if (effect == 2) {//Friction
+						p.vector = p.vector - 2 * (glm::dot(backN, p.vector) + 5) * backN;
+						p.velvector = p.velvector - 2 * glm::dot(backN, p.velvector) * backN;
+						glm::vec3 normalVel = glm::dot(backN, p.velvector) * backN;
+						glm::vec3 tanVel = p.velvector - normalVel;
+						p.velvector = p.velvector - friction * tanVel;
+					}
+				}
 
 				}
 
