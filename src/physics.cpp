@@ -91,7 +91,7 @@ float calculateCollision(glm::vec3 vector, glm::vec3 lastvector, glm::vec3 norma
 	float calc1 = dot1 + d;
 	float calc2 = dot2 + d;
 	float total = calc1*calc2;
-	return calc2;
+	return total;
 }
 
 void PhysicsInit() {
